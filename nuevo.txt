@@ -1,0 +1,44 @@
+<?php
+echo <<<_END
+<html><head><title>PHP formulario par Up Imagen</title></head>
+<body>
+<form method='post' action='up_imagen.php' enctype='multipart/form-data'>
+SELECCIONE UN FORMATO JPEG, GIF, PNG OR TIF archivo:
+<input type='file' name='filename' size='10'>
+<input type='submit' value='subir'>
+</form>
+_END;
+
+if($_FILES){
+    $name = $_FILES['filename']['name'];
+    $ext = pathinfo($name, PATHINFO_EXTENSION);
+    $allowed_exts = array('jpg', 'jpeg', 'png', 'gif', 'tiff');
+
+    if(in_array($ext, $allowed_exts)){
+        $n = uniqid() . ".$ext";
+        $tmp_name = $_FILES['filename']['tmp_name'];
+
+        // Resize the image to 800x600
+        $img = imagecreatefromstring(file_get_contents($tmp_name));
+        $resized_img = imagescale($img, 800, 600);
+
+        // Optimize the image
+        ob_start();
+        imagejpeg($resized_img, NULL, 80);
+        $image_data = ob_get_contents();
+        ob_end_clean();
+
+        // Save the image
+        file_put_contents($n, $image_data);
+
+        echo "imagen subida '$name' as $n:<br>";
+        echo "<img src='$n'>";
+    }else{
+        echo "'$name' esta imagen no es aceptada";
+    }
+}else{
+    echo "la imagen no ha sido cargada";
+}
+
+echo "</body></html>";
+?>
